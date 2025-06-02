@@ -35,7 +35,7 @@ class GameEvent:
     type: EventType
     text: str
 
-_ocr_reader = easyocr.Reader(['en'])
+_ocr_reader = easyocr.Reader(['en'], gpu=True)
 
 
 def from_file(image_file: Path) -> Image:
