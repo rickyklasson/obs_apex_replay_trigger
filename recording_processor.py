@@ -26,7 +26,7 @@ class VideoMetadata:
     def from_path(cls, video_path: Path) -> 'VideoMetadata':
         cmd = [
             "ffprobe",
-            "-v", "error",
+            "-v", "quiet",
             "-select_streams", "v",
             "-show_entries", "format=duration",
             "-show_entries", "stream=r_frame_rate,width,height",
@@ -65,6 +65,8 @@ def _extract_event_timestamps(rec_metadata: VideoMetadata, event_triggers: list[
     FPS = 1
     ffmpeg_command = [
         "ffmpeg",
+        "-v", "quiet",
+        "-stats",
         "-i", str(rec_metadata.path),
         "-vf", f"fps={FPS}",
         "-f", "image2pipe",
@@ -76,7 +78,8 @@ def _extract_event_timestamps(rec_metadata: VideoMetadata, event_triggers: list[
     timestamps = []
     timestamp = 0
     while True:
-        print(f'Analysing image at timestamp: {timestamp}', end='\r', flush=True)
+        print(f'Analysing recording for events ({timestamp / rec_metadata.duration * 100:.0f}%)',
+              end='\r', flush=True)
 
         # Read JPEG frame from stdout.
         png_header = proc.stdout.read(8)
@@ -186,6 +189,8 @@ def _create_highlight(metadata: VideoMetadata, highlights: list[tuple[int, int]]
         "-f", "concat", "-safe", "0",
         "-i", str(concat_file),
         "-c", "copy",
+        "-v", "quiet",
+        "-stats",
         str(output_path)
     ]
     subprocess.run(cmd_concat, check=True)
