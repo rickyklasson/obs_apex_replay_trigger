@@ -18,9 +18,6 @@ class Manager:
 
     def __init__(self, websocket_port: int, websocket_pass: str):
         self.obs_client = obs.ReqClient(host='localhost', port=websocket_port, password=websocket_pass, timeout=3)
-        print(self._get_last_recorded_file())
-
-        sys.exit(0)
 
     def _get_last_recorded_file(self) -> Path | None:
         record_dir = Path(self.obs_client.get_record_directory().record_directory)
@@ -78,7 +75,7 @@ class Manager:
             self.obs_client.disconnect()
             logging.info('Stopping replay buffer and disconnecting websocket, exiting...')
 
-    def monitor_games(self):
+    def monitor_games(self, triggers: list[str]):
         PERIOD = 1.0
 
         class State(Enum):
@@ -89,7 +86,7 @@ class Manager:
         state = State.WAITING_FOR_GAME
         count = 0
         try:
-            logging.info('Starting game recorder!')
+            logging.info('Starting game monitor!')
             while True:
                 start_time = time.time()
 
@@ -119,9 +116,9 @@ class Manager:
                     recorded_file = self._get_last_recorded_file()
                     assert recorded_file is not None
 
-                    rec_proc.process_recording(recorded_file)
+                    replay_triggers = [events.EventType.from_str(s) for s in triggers]
+                    rec_proc.process_recording(recorded_file, replay_triggers)
 
-                    time.sleep(2)
                     logging.info('Recording processed! Waiting for new game...')
                     state = State.WAITING_FOR_GAME
 

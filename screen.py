@@ -2,17 +2,25 @@ from PIL import Image
 
 import mss
 
+# These bboxes are valid when apex is running at 1920x1080.
+BBOXES = {
+    'player_event': (600, 760, 1320, 795),  # Bbox for player event texts: 'KNOCKED', 'ASSIST' etc...
+    'game_start': (760, 40, 1160, 110),  # BBox for game start text: 'YOUR SQUAD'
+    'game_end': (980, 30, 1140, 60),  # Bbox for game end: 'SUMMARY'
+    'victory': (820, 960, 1100, 1000),  # Bbox for victory: 'CHAMPION'
+}
+
 _screen_capture = mss.mss()
 
 
+def crop_to_region(image: Image, region: str) -> Image:
+    assert region in BBOXES
+
+    bbox = BBOXES[region]
+    return image.crop(bbox)
+
+
 def grab_region(region: str) -> Image:
-    # These bboxes are valid when apex is running at 1920x1080.
-    BBOXES = {
-        'player_event': (600, 760, 1320, 795),  # Bbox for player event texts: 'KNOCKED', 'ASSIST' etc...
-        'game_start': (760, 40, 1160, 110),  # BBox for game start text: 'YOUR SQUAD'
-        'game_end': (980, 30, 1140, 60),  # Bbox for game end: 'SUMMARY'
-        'victory': (820, 960, 1100, 1000),  # Bbox for victory: 'CHAMPION'
-    }
     assert region in BBOXES
 
     bbox = BBOXES[region]
